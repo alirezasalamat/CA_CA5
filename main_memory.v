@@ -1,40 +1,63 @@
-timescale 1ns/1ns
-`define SETS 1024
-`define TAGS 3
-`define WORD_LENGTH 32
-`define VALID 1
+`timescale 1 ns / 1 ns
+`include "./constants.vh"
 
-module main_memory();
-    input clk;
+// main_memory returns data stored in the received address.
+// Note: we don't need to write anything in this module;
+// so we wouldn't need a clock either.
+
+module main_memory(address, hit, dataOut1, dataOut2, dataOut3, dataOut4);
     input [14:0] address;
     input hit;
 
-    output [31:0] dataOut1;
-    output [31:0] dataOut2;
-    output [31:0] dataOut3;
-    output [31:0] dataOut4;
+    output reg [31:0] dataOut1, dataOut2, dataOut3, dataOut4;
     
     reg [31:0] RAM [0:2 ** 15 - 1];
 
+    integer i;
     initial begin
-        integer i;
         for (i = 0; i < `SETS; i = i + 1) begin
             RAM[i] = i;
         end
     end
 
-    always @(posedge clk)begin
-        dataOut1 <= 32'bz
-        dataOut2 <= 32'bz
-        dataOut3 <= 32'bz
-        dataOut4 <= 32'bz
+    initial begin
+        $readmemb("./main_memory.bin", RAM);
+        $display("%t: MEMORY::INIT\n", $time);
+    end
 
-        if(hit == 0)begin 
-            dataOut1 <= RAM[{address[14:2] , 2'b00}];
-            dataOut2 <= RAM[{address[14:2] , 2'b01}];
-            dataOut3 <= RAM[{address[14:2] , 2'b10}];
-            dataOut4 <= RAM[{address[14:2] , 2'b11}];
+    always @(address or hit) begin
+        {dataOut1, dataOut2, dataOut3, dataOut4} = 128'bz;
+
+        if (hit == 1'b0) begin
+            dataOut1 = RAM[{address[14:2] , 2'b00}];
+            dataOut2 = RAM[{address[14:2] , 2'b01}];
+            dataOut3 = RAM[{address[14:2] , 2'b10}];
+            dataOut4 = RAM[{address[14:2] , 2'b11}];
+
+            $display("@%t: MAIN_MEM::READ: address: %d", $time, address);
         end
     end
 
+endmodule
+
+module mem_test();
+    reg [14:0] address;
+    reg hit;
+    wire [31:0] dataOut1, dataOut2, dataOut3, dataOut4;
+    main_memory ram(address, hit, dataOut1, dataOut2, dataOut3, dataOut4);
+    
+    integer i;
+    initial begin
+        hit = 1'b0;
+        for (i = 1024; i < 1124; i = i + 1) begin
+            #100 address = i;   
+        end
+
+        hit = 1'b1;
+        for (i = 1124; i < 1134; i = i + 1) begin
+            #100 address = i;
+        end
+
+        #100;
+    end
 endmodule
