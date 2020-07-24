@@ -5,9 +5,9 @@ module memory_controller(hit, address, cache_out,
     
     input hit;
     input [14:0] address;
-    input [31:0] cache_out, ram_out1, ram_out2, ram_out3, ram_out4;
+    input [`WORD_LENGTH - 1:0] cache_out, ram_out1, ram_out2, ram_out3, ram_out4;
     output reg cache_write;
-    output reg [31:0] mem_out;
+    output reg [`WORD_LENGTH - 1:0] mem_out;
 
     always @(hit or address) begin
         cache_write = 1'b0;

@@ -9,9 +9,9 @@ module main_memory(address, hit, dataOut1, dataOut2, dataOut3, dataOut4);
     input [14:0] address;
     input hit;
 
-    output reg [31:0] dataOut1, dataOut2, dataOut3, dataOut4;
+    output reg [`WORD_LENGTH - 1:0] dataOut1, dataOut2, dataOut3, dataOut4;
     
-    reg [31:0] RAM [0:2 ** 15 - 1];
+    reg [`WORD_LENGTH - 1:0] RAM [0:2 ** 15 - 1];
 
     integer i;
     initial begin
@@ -20,10 +20,10 @@ module main_memory(address, hit, dataOut1, dataOut2, dataOut3, dataOut4);
         end
     end
 
-    initial begin
+    /*initial begin
         $readmemb("./main_memory.bin", RAM);
         $display("%t: MEMORY::INIT\n", $time);
-    end
+    end*/
 
     always @(address or hit) begin
         {dataOut1, dataOut2, dataOut3, dataOut4} = 128'bz;
@@ -40,10 +40,10 @@ module main_memory(address, hit, dataOut1, dataOut2, dataOut3, dataOut4);
 
 endmodule
 
-module mem_test();
+module main_mem_test();
     reg [14:0] address;
     reg hit;
-    wire [31:0] dataOut1, dataOut2, dataOut3, dataOut4;
+    wire [`WORD_LENGTH - 1:0] dataOut1, dataOut2, dataOut3, dataOut4;
     main_memory ram(address, hit, dataOut1, dataOut2, dataOut3, dataOut4);
     
     integer i;
