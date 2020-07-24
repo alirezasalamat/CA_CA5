@@ -16,26 +16,34 @@ module main_memory(address, hit, dataOut1, dataOut2, dataOut3, dataOut4);
     integer i;
     initial begin
         for (i = 0; i < `SETS; i = i + 1) begin
-            RAM[i] = i;
+            RAM[i] = 0;
         end
+        
+        for (i = 0; i < 8 * `SETS; i = i + 1) begin
+            RAM[`SETS + i] = i;
+        end
+
+        for (i = 0; i < `SETS; i = i + 1) begin
+            RAM[9 * `SETS + i] = 0;
+        end 
     end
 
-    /*initial begin
-        $readmemb("./main_memory.bin", RAM);
-        $display("%t: MEMORY::INIT\n", $time);
-    end*/
+    initial begin
+        // $readmemb("./main_memory.bin", RAM);
+        $display("%t: MEMORY::INIT", $time);
+    end
 
     always @(address or hit) begin
         {dataOut1, dataOut2, dataOut3, dataOut4} = 128'bz;
 
-        if (hit == 1'b0) begin
+        // if (hit == 1'b0) begin
             dataOut1 = RAM[{address[14:2] , 2'b00}];
             dataOut2 = RAM[{address[14:2] , 2'b01}];
             dataOut3 = RAM[{address[14:2] , 2'b10}];
             dataOut4 = RAM[{address[14:2] , 2'b11}];
 
             $display("@%t: MAIN_MEM::READ: address: %d", $time, address);
-        end
+        // end
     end
 
 endmodule
