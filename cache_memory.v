@@ -1,9 +1,9 @@
 `timescale 1ns / 1ns
 `include "./constants.vh"
 
-module cache_memory(clk, cache_write, address,
+module cache_memory(clk, cache_read, cache_write, address,
                     dataIn1, dataIn2, dataIn3, dataIn4, hit, out);
-    input clk, cache_write;
+    input clk, cache_read, cache_write;
     input [14:0] address;
     
     input [`WORD_LENGTH - 1:0] dataIn1;
@@ -30,19 +30,12 @@ module cache_memory(clk, cache_write, address,
     end
 
     always @(address) begin
-        out = 32'bz;
         hit = 1'b0;
 
-        if (cache[address[`IDX_START:`IDX_END]][131] == `VALID && 
-            cache[address[`IDX_START:`IDX_END]][130:128] == address[`TAG_START:`TAG_END]) begin
+        if (cache[address[11:2]][131] == `VALID && 
+            cache[address[11:2]][130:128] == address[14:12]) begin
             hit = 1'b1;
             hit_count = hit_count + 1;
-            case (address[1:0])
-                2'b11: out = cache[address[`IDX_START:`IDX_END]][31:0];
-                2'b10: out = cache[address[`IDX_START:`IDX_END]][63:32];
-                2'b01: out = cache[address[`IDX_START:`IDX_END]][95:64];
-                2'b00: out = cache[address[`IDX_START:`IDX_END]][127:96];
-            endcase
             
             $display("@%t: CACHE::HIT: address: %d, hit_count: %d", $time, address, hit_count);
 
@@ -54,10 +47,23 @@ module cache_memory(clk, cache_write, address,
         end
     end
 
-    always @(negedge clk) begin
-        if (cache_write == 1'b1)
-            cache[address[`IDX_START:`IDX_END]] <= {1'b1, address[14:12], dataIn1, dataIn2, dataIn3, dataIn4};
+    always @(posedge clk) begin
+        if (cache_write == 1'b1) begin
+            cache[address[11:2]] <= {1'b1, address[14:12], dataIn1, dataIn2, dataIn3, dataIn4};
             $display("@%t: CACHE::WRITE: index: %d", $time, address[11:2]);
+        end
+    end
+
+    always @(cache_read or address) begin
+        out = 32'bz;
+        if (cache_read == 1'b1) begin
+            case (address[1:0])
+                2'b11: out = cache[address[11:2]][31:0];
+                2'b10: out = cache[address[11:2]][63:32];
+                2'b01: out = cache[address[11:2]][95:64];
+                2'b00: out = cache[address[11:2]][127:96];
+            endcase
+        end
     end
 
 endmodule

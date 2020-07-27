@@ -1,32 +1,46 @@
 `timescale 1 ns / 1 ns
 `include "./constants.vh"
 
-module memory_controller(hit, address, cache_out, 
-                        ram_out1, ram_out2, ram_out3, ram_out4,
-                        cache_write, mem_out);
+module memory_controller(clk, clear, hit, address, ready, cache_read,
+                         cache_write);
     
-    input hit;
+    input clk, clear, hit;
     input [14:0] address;
-    input [`WORD_LENGTH - 1:0] cache_out, ram_out1, ram_out2, ram_out3, ram_out4;
-    output reg cache_write;
-    output reg [`WORD_LENGTH - 1:0] mem_out;
+    output reg ready, cache_read, cache_write;
 
-    always @(hit or address) begin
-        cache_write = 1'b0;
-        mem_out = 32'bz;
-        if (hit == 1'b1) begin
-            mem_out = cache_out;
-            $display("@%t: MEM_CTRL: mem_out = cache_out = %b", $time, mem_out);
-        end
-        else begin
-            cache_write = 1'b1;
-            case (address[1:0])
-                2'b00: mem_out = ram_out1;
-                2'b01: mem_out = ram_out2;
-                2'b10: mem_out = ram_out3;
-                2'b11: mem_out = ram_out4;
-            endcase
-            $display("@%t: MEM_CTRL: mem_out = ram_out = %b", $time, mem_out);
-        end
+    reg [1:0] ps, ns;
+
+    parameter DECODE = 2'b00;
+    parameter C_WRITE = 2'b01;
+    parameter C_READ = 2'b10;
+
+    always @(ps or hit or address) begin
+        case (ps)
+            DECODE: begin
+                if (hit == 1'b1)
+                    ns = C_READ;
+                else
+                    ns = C_WRITE;
+            end
+            C_WRITE: ns = C_READ;
+            C_READ: ns = DECODE;
+        endcase
+    end
+
+    always @(ps) begin
+        // $display("@%t: MEM_CTRL: ps is now: %d", $time, ps);
+        {ready, cache_read, cache_write} = 3'b000;
+        case (ps)
+            DECODE: ready = 1'b1;
+            C_WRITE: cache_write = 1'b1;
+            C_READ: cache_read = 1'b1;
+        endcase
+    end
+
+    always @(posedge clk or posedge clear) begin
+        if (clear == 1'b1)
+            ps <= 2'b00;
+        else
+            ps <= ns;
     end
 endmodule
