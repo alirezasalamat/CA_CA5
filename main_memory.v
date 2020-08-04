@@ -36,16 +36,15 @@ module main_memory(address, hit, dataOut1, dataOut2, dataOut3, dataOut4);
     always @(address or hit) begin
         {dataOut1, dataOut2, dataOut3, dataOut4} = 128'bz;
 
-        // if (hit == 1'b0) begin
+        if (hit == 1'b0) begin
             dataOut1 = RAM[{address[14:2] , 2'b00}];
             dataOut2 = RAM[{address[14:2] , 2'b01}];
             dataOut3 = RAM[{address[14:2] , 2'b10}];
             dataOut4 = RAM[{address[14:2] , 2'b11}];
 
             $display("@%t: MAIN_MEM::READ: address: %d", $time, address);
-        // end
+        end
     end
-
 endmodule
 
 module main_mem_test();
