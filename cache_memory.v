@@ -37,8 +37,8 @@ module cache_memory(clk, cache_read, cache_write, address,
             hit = 1'b1;
             hit_count = hit_count + 1;
             
-            $display("@%t: CACHE::HIT: address: %d, hit_count: %d", $time, address, hit_count);
-
+            // $display("@%t: CACHE::HIT: address: %d, hit_count: %d", $time, address, hit_count);
+            $display("@%t: CACHE::HIT: address: %d", $time, address);
         end
         
         else begin

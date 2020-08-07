@@ -14,6 +14,7 @@ module memory_controller(clk, clear, hit, address, ready, cache_read,
     parameter CACHE_WRITE = 2'b01;
     parameter CACHE_READ = 2'b10;
 
+    integer miss = 0, total = 0;
     always @(ps or hit or address) begin
         case (ps)
             DECODE: begin
@@ -31,8 +32,15 @@ module memory_controller(clk, clear, hit, address, ready, cache_read,
         {ready, cache_read, cache_write} = 3'b000;
         case (ps)
             DECODE: ready = 1'b1;
-            CACHE_WRITE: cache_write = 1'b1;
-            CACHE_READ: cache_read = 1'b1;
+            CACHE_WRITE: begin 
+                cache_write = 1'b1;
+                miss = miss + 1; 
+            end
+            CACHE_READ: begin
+                cache_read = 1'b1;
+                total = total + 1;
+                $display("@%t: CTRL: hit_count: %d", $time, total - miss);
+            end
         endcase
     end
 
